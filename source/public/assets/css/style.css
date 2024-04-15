@@ -1,0 +1,379 @@
+/*
+    style.css
+
+    Project : Session project
+    Course : IFT-7100 - Practical aspects of blockchain
+    Team : Team 7
+    Session : Winter 2024
+    University : Laval University
+    Version : 1.0
+*/
+
+*, *::after, *::before {
+    box-sizing: border-box;
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    width: 100%;
+    font-family: Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    overflow: hidden;
+    color: #000;
+}
+
+h1, h2, h3 {
+    margin-bottom: 15px;
+}
+
+h1 {
+    font-size: 28px;
+}
+
+h2 {
+    font-size: 24px;
+}
+
+h3 {
+    font-size: 20px;
+}
+
+strong {
+    font-weight: bold;
+}
+
+em {
+    font-style: italic;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid #E3E3E3;
+}
+
+button {
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: normal;
+    border-radius: 3px;
+    border: none;
+    transition-duration: 0.3s;
+    transition-timing-function: ease;
+    color: #FFF;
+    background-color: #096EDF;
+}
+
+button[disabled],
+button[disabled]:hover,
+button[disabled]:focus {
+    cursor: default;
+    color: #A9A9A9;
+    background-color: #E3E3E3;
+}
+
+button:hover {
+    background-color: #0099FF;
+}
+
+button:focus {
+    background-color: #1854BE;
+}
+
+.d-none {
+    display: none;
+}
+
+.text-right {
+    text-align: right !important;
+}
+
+.mb-0 {
+    margin-bottom: 0 !important;
+}
+
+.mb-5 {
+    margin-bottom: 5px !important;
+}
+
+.topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 75px;
+    width: 100vw;
+    padding-top: 8px;
+    display: -webkit-box;
+    display: flex;
+    font-size: 20px;
+    border-bottom: 1px solid #E3E3E3;
+    background-color: #FFF;
+}
+
+.topbar::before, .topbar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    height: 8px;
+    width: 100%;
+    display: block;
+}
+
+.topbar::before {
+    left: 0;
+    width: 100%;
+    background-color: #E30513;
+}
+
+.topbar::after {
+    right: 0;
+    width: 20%;
+    background-color: #FFC103;
+}
+
+.topbar .left {
+    width: 259px;
+    padding: 0 20px;
+    display: -webkit-box;
+    display: flex;
+    -webkit-box-align: center;
+    align-items: center;
+    justify-content: space-between;
+    border-right: 1px solid #E3E3E3;
+    color: #000;
+    background-color: #FFF;
+}
+
+.topbar .left .logo {
+    height: 45px;
+    margin-top: 4px;
+}
+
+.topbar .left .separator {
+    height: 29px;
+    width: 1px;
+    background-color: #000;
+}
+
+.topbar .right {
+    width: calc(100vw - 259px);
+    padding: 0 20px;
+    display: -webkit-box;
+    display: flex;
+    -webkit-box-align: center;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.container {
+    position: fixed;
+    top: 75px;
+    left: 0;
+    height: calc(100dvh - 140px);
+    width: 100vw;
+    padding: 20px;
+    display: -webkit-box;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto;
+    background-color: #F4F4F4;
+}
+
+.container a {
+    font-weight: bold;
+    color: #E30513;
+}
+
+.container a:hover {
+    color: #E30513;
+}
+
+.container .app {
+    width: 1050px;
+}
+
+.container .app > *:not(:last-child) {
+    margin-bottom: 20px;
+}
+
+.container .app .alert {
+    padding: 10px 20px;
+    font-weight: bold;
+    border-radius: 3px;
+}
+
+.container .app .alert.alert-info {
+    color: #696969;
+    background-color: #E3E3E3;
+}
+
+.container .app .alert.alert-success {
+    color: #059C0F;
+    background-color: #D4EDDA;
+}
+
+.container .app .alert.alert-danger {
+    color: #E30513;
+    background-color: #F8D7DA;
+}
+
+.container .loading,
+.container .owner,
+.container .lottery section {
+    padding: 20px;
+    border-radius: 3px;
+    border: 1px solid #E3E3E3;
+    background-color: #FFF;
+}
+
+.container .owner .buttons {
+    display: -webkit-box;
+    display: flex;
+}
+
+.container .owner .buttons li {
+    width: 100%;
+}
+
+.container .owner .buttons li:not(:last-child) {
+    margin-right: 20px;
+}
+
+.container .owner .buttons button {
+    width: 100%;
+    padding: 30px 20px;
+    text-align: center;
+}
+
+.container .owner .buttons button {
+    width: 100%;
+    padding: 30px 20px;
+    text-align: center;
+}
+
+.container .lottery {
+    display: -webkit-box;
+    display: flex;
+}
+
+.container .lottery .left {
+    width: 700px;
+    margin-right: 20px;
+}
+
+.container .lottery .left > *:not(:last-child)  {
+    margin-bottom: 20px;
+}
+
+.container .lottery .left .split  {
+    display: -webkit-box;
+    display: flex;
+}
+
+.container .lottery .left .split .details  {
+    width: 50%;
+}
+
+.container .lottery .left .split .details:nth-child(1)  {
+    margin-right: 20px;
+}
+
+.container .lottery .left .details  {
+    padding: 20px;
+    border-radius: 3px;
+    border: 1px solid #E3E3E3;
+}
+
+.container .lottery .left .details  {
+    padding: 20px;
+    border: 1px solid #E3E3E3;
+}
+
+.container .lottery .left .details .expiration {
+    display: -webkit-box;
+    display: flex;
+}
+
+.container .lottery .left .details .expiration li {
+    padding: 30px 20px;
+    width: 100%;
+    font-size: 40px;
+    text-align: center;
+    border-radius: 3px;
+    border: 1px solid #E3E3E3;
+}
+
+.container .lottery .left .details .expiration li:not(:last-child) {
+    margin-right: 20px;
+}
+
+.container .lottery .right {
+    width: 350px;
+}
+
+.container .lottery .right div {
+    display: -webkit-box;
+    display: flex;
+    justify-content: space-between;
+}
+
+.container .lottery .right div:not(:last-child) {
+    margin-bottom: 0;
+}
+
+.container .lottery .right div.nbTicket {
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 3px;
+    border: 1px solid #E3E3E3;
+}
+
+.container .lottery .right div.nbTicket label {
+    padding-right: 10px;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.container .lottery .right div.nbTicket input {
+    width: 100%;
+    font-size: 16px;
+    text-align: right;
+    -webkit-appearance: textfield;
+    outline: none;
+    border: none;
+    color: #000;
+}
+
+.container .lottery .right div.nbTicket input::-webkit-outer-spin-button,
+.container .lottery .right div.nbTicket input::-webkit-inner-spin-button {
+    margin: 0;
+    -webkit-appearance: none;
+}
+
+.container .lottery .right div.total {
+    margin: 15px 0;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.container .lottery .right button {
+    width: 100%;
+    padding: 15px 10px;
+}
+
+footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100vw;
+    padding: 20px;
+    border-top: 1px solid #E3E3E3;
+    background-color: #FFF;
+}
