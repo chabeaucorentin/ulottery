@@ -100,7 +100,7 @@ export default function Home() {
             await Lottery.events.WinnerSelected().unsubscribe();
             await Lottery.events.LotteryCancelled().unsubscribe();
         };
-    }, [Lottery]);
+    }, []);
 
     const fetchTicketPrice = async () => {
         const tp = await Lottery.methods.ticketPrice().call();
