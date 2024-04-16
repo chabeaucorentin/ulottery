@@ -2,12 +2,11 @@
 
 import Web3 from "web3";
 import Lottery from "./lottery";
-import { useEffect, useState } from "react";
+import {useEffect, useState} from "react";
 
 export default function Home() {
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
-    const [web3, setWeb3] = useState(null);
     const [address, setAddress] = useState("");
     const [isLoaded, setIsLoaded] = useState(false);
     const [isActive, setIsActive] = useState(true);
@@ -17,189 +16,336 @@ export default function Home() {
     const [nbTickets, setNbTickets] = useState(1);
 
     /* ---------------------- Variables du contrat ---------------------- */
+    const [owner, setOwner] = useState("");
     const [ticketPrice, setTicketPrice] = useState(0);
+    const [nbMaxTickets, setNbMaxTickets] = useState(0);
     const [expiration, setExpiration] = useState(0);
-    const [tickets, setTickets] = useState([]);
-    const [lastWinner, setLastWinner] = useState("");
-    const [lastWinnerWinnings, setLastWinnerWinnings] = useState(0);
+    const [winnings, setWinnings] = useState(0);
+    const [nbRemainingTickets, setNbRemainingTickets] = useState(0);
+    const [nbTotalTickets, setNbTotalTickets] = useState(0);
 
     useEffect(() => {
-        initializeData();
+        if (!isLoaded) initializeData();
 
-        const timer = setInterval(() => {
-            updateTimer();
+        let timer = setInterval(() => {
+            updateTimer(expiration);
         }, 1000);
 
-        return () => clearInterval(timer);
+        /* --------------------------- Événements --------------------------- */
+        Lottery.events.LotteryStarted({
+            fromBlock: "latest"
+        })
+            .on("data", function(event) {
+                const exp = event.returnValues.expiration;
+
+                updateTimer(Number(exp));
+                setSuccess("La loterie a été démarrée.");
+                setError("");
+            });
+
+        Lottery.events.LotteryStopped({
+            fromBlock: "latest"
+        })
+            .on("data", function(event) {
+                updateTimer(0);
+                setError("La loterie a été arrêtée.");
+            });
+
+        Lottery.events.TicketsPurchased({
+            fromBlock: "latest"
+        })
+            .on("data", function(event) {
+                if (event.returnValues.participant === address) {
+                    setSuccess("Votre achat a bien été réalisé.");
+                    setError("");
+                }
+                setNbTotalTickets(nbTotalTickets + Number(event.returnValues.nb));
+                setNbRemainingTickets(nbRemainingTickets - Number(event.returnValues.nb));
+            });
+
+        Lottery.events.WinnerSelected({
+            fromBlock: "latest"
+        })
+            .on("data", function(event) {
+                if (event.returnValues.winner === address && nbTotalTickets > 0) {
+                    setWinnings(parseFloat((winnings + nbTotalTickets * ticketPrice).toFixed(3)));
+                    setSuccess("Félicitations ! Vous remportez les gains.");
+                    setError("");
+                }
+                setNbTotalTickets(0);
+                setNbRemainingTickets(nbMaxTickets);
+            });
+
+        Lottery.events.LotteryCancelled({
+            fromBlock: "latest"
+        })
+            .on("data", function(event) {
+                updateTimer(0);
+                setError("La loterie a été annulée et remboursée.");
+            });
+
+        return async () => {
+            clearInterval(timer);
+            await Lottery.events.LotteryStarted().unsubscribe();
+            await Lottery.events.LotteryStopped().unsubscribe();
+            await Lottery.events.TicketsPurchased().unsubscribe();
+            await Lottery.events.WinnerSelected().unsubscribe();
+            await Lottery.events.LotteryCancelled().unsubscribe();
+        };
     });
+
     const fetchTicketPrice = async () => {
         const tp = await Lottery.methods.ticketPrice().call();
-        setTicketPrice(Number(tp));
+
+        setTicketPrice(Number(Web3.utils.fromWei(tp, "ether")));
+    };
+
+    const fetchNbMaxTickets = async () => {
+        const nb = await Lottery.methods.nbMaxTickets().call();
+
+        setNbMaxTickets(Number(nb));
+    };
+
+    const fetchOwner = async () => {
+        const own = await Lottery.methods.owner().call();
+
+        setOwner(own);
     };
 
     const fetchExpiration = async () => {
         const exp = await Lottery.methods.expiration().call();
-        const current = Number(Math.floor(Date.now() / 1000));
 
-        setExpiration(Number(exp));
-        updateTimer();
-        if (current >= exp) {
-            setIsActive(false);
-        }
+        updateTimer(Number(exp));
     };
 
-    const fetchTickets = async () => {
-        const tic = await Lottery.methods.tickets().call();
-        setTickets(tic);
+    const fetchWinnings = async (addr) => {
+        const win = await Lottery.methods.getPlayerWinnings(addr).call();
+
+        setWinnings(Number(Web3.utils.fromWei(win, "ether")));
     };
 
-    const fetchLastWinner = async () => {
-        const lw = await Lottery.methods.lastWinner().call();
-        const lww = await Lottery.methods.lastWinnerWinnings().call();
+    const fetchNbRemainingTickets = async () => {
+        const nb = await Lottery.methods.nbRemainingTickets().call();
 
-        setLastWinner(lw);
-        setLastWinnerWinnings(lww);
+        setNbRemainingTickets(Number(nb));
+    };
+
+    const fetchNbTotalTickets = async () => {
+        const nb = await Lottery.methods.getNbTickets().call();
+
+        setNbTotalTickets(Number(nb));
     };
 
     const initializeData = async () => {
         await fetchTicketPrice();
+        await fetchNbMaxTickets();
+        await fetchOwner();
         await fetchExpiration();
-        await fetchLastWinner();
-        //await fetchTickets();
+        await fetchNbRemainingTickets();
+        await fetchNbTotalTickets();
         setIsLoaded(true);
     }
 
-    function updateTimer() {
+    function updateTimer(exp) {
         const current = Number(Math.floor(Date.now() / 1000));
-        const remaining = expiration - current;
+        const remaining = exp - current;
 
+        setExpiration(exp);
         if (remaining > 0) {
+            if (!isActive) {
+                setIsActive(true);
+            }
             setHours(Math.floor((remaining % (3600 * 24)) / 3600));
             setMinutes(Math.floor((remaining % 3600) / 60));
             setSeconds(Math.floor(remaining % 60));
         } else if (isLoaded && isActive) {
             setIsActive(false);
+            setHours(0);
+            setMinutes(0);
+            setSeconds(0);
         }
+    }
+
+    const sendTransaction = async ({ data, value = 0 }) => {
+        const params = {
+            to: Lottery.options.address,
+            from: address,
+            data: data,
+            value: value,
+            gasLimit: Web3.utils.toHex(800000)
+        };
+
+        return await ethereum.request({ method: 'eth_sendTransaction', params: [params] });
     }
 
     /* ---------------------------- Handlers ---------------------------- */
     const walletHandler = async () => {
-        if (web3) {
-            setWeb3(null);
+        if (address) {
             setAddress("");
         } else if (typeof window !== "undefined" && typeof window.ethereum !== "undefined") {
             try {
                 const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-                setWeb3(new Web3(window.ethereum));
-                setAddress(accounts[0]);
+                setAddress(Web3.utils.toChecksumAddress(accounts[0]));
+                await fetchWinnings(accounts[0]);
                 setError("");
             } catch (err) {
-                setError("La connexion au portefeuille a échouée !");
+                setError("La connexion au portefeuille a échouée.");
             }
         } else {
-            setError("Aucun portefeuille détecté !");
+            setError("Aucun portefeuille détecté.");
         }
+    }
+
+    const startHandler = async () => {
+        await sendTransaction({ data: Lottery.methods.startLottery().encodeABI() });
+    }
+
+    const stopHandler = async () => {
+        await sendTransaction({ data: Lottery.methods.stopLottery().encodeABI() });
+    }
+
+    const buyTicketsHandler = async () => {
+        const total = nbTickets * ticketPrice;
+        await sendTransaction({
+            data: Lottery.methods.buyTickets(nbTickets).encodeABI(),
+            value: "0x" + Number(Web3.utils.toWei(total, "ether")).toString(16),
+        });
+    }
+
+    const drawWinnerHandler = async () => {
+        await sendTransaction({ data: Lottery.methods.drawWinner().encodeABI() });
+    }
+
+    const withdrawWinningsHandler = async () => {
+        await sendTransaction({ data: Lottery.methods.withdrawWinnings().encodeABI() });
+    }
+
+    const cancelHandler = async () => {
+        await sendTransaction({ data: Lottery.methods.cancelLottery().encodeABI() });
     }
 
     return (
         <body>
-            <header className="topbar">
-                <div className="left">
-                    <img className="logo" src="./assets/images/logo.svg" alt="Université Laval"/>
-                    <div className="separator"></div>
-                    <span className="course">IFT-7100</span>
-                </div>
-                <div className="right">
-                    <span>uLottery</span>
-                    <button onClick={walletHandler}>
-                        {web3 ? "Déconnexion" : "Connexion"}
-                    </button>
-                </div>
-            </header>
-            <main className="container">
-                <div className="app">
-                    {isLoaded ?
+        <header className="topbar">
+            <div className="left">
+                <img className="logo" src="./assets/images/logo.svg" alt="Université Laval"/>
+                <div className="separator"></div>
+                <span className="course">IFT-7100</span>
+            </div>
+            <div className="right">
+                <span>uLottery</span>
+                <button onClick={walletHandler}>
+                    {address ? "Déconnexion" : "Connexion"}
+                </button>
+            </div>
+        </header>
+        <main className="container">
+            <div className="app">
+                {isLoaded ?
                     <>
+                        {address ? <div className="alert alert-info">Connecté sur le portefeuille {address}</div> : ""}
                         {error ? <div className="alert alert-danger">{error}</div> : ""}
                         {!error && success ? <div className="alert alert-success">{success}</div> : ""}
-                        <div className="owner">
+                        {owner === address ? <div className="owner">
                             <h2>Gestion de la loterie</h2>
                             <ul className="buttons">
                                 <li>
-                                    <button disabled={isActive}>Démarrer</button>
+                                    <button onClick={startHandler} disabled={isActive || nbTotalTickets > 0}>
+                                        Démarrer
+                                    </button>
                                 </li>
                                 <li>
-                                    <button disabled={!isActive}>Arrêter</button>
+                                    <button onClick={stopHandler} disabled={!isActive}>
+                                        Arrêter
+                                    </button>
                                 </li>
                                 <li>
-                                    <button disabled={isActive}>Tirer un gagnant</button>
+                                    <button onClick={drawWinnerHandler} disabled={isActive || !nbTotalTickets}>
+                                        Tirer un gagnant
+                                    </button>
                                 </li>
                                 <li>
-                                    <button disabled={!isActive}>Annuler</button>
+                                    <button onClick={cancelHandler} disabled={nbTotalTickets}>
+                                        Annuler
+                                    </button>
                                 </li>
                             </ul>
-                        </div>
+                        </div> : ""}
                         <div className="lottery">
-                            <section className="left">
-                                <h2>Loterie en cours</h2>
-                                {!isActive ? <div className="alert alert-info">Aucune loterie en cours.</div> : ""}
-                                <div className="split">
-                                    <div className="details">
-                                        <h3>Gain potentiel</h3>
-                                        <p>{tickets.length * ticketPrice} ETH</p>
+                            <div className="left">
+                                <section>
+                                    <h2>Loterie en cours</h2>
+                                    {!isActive ? <div className="alert alert-info">
+                                        {nbTotalTickets > 0 ? "En attente de la sélection d'un gagnant pour la loterie " +
+                                            "précédente." : "Aucune loterie en cours"}
+                                    </div> : ""}
+                                    <div className="split">
+                                        <div className="details">
+                                            <h3>Gains potentiels</h3>
+                                            <p>{nbTotalTickets * ticketPrice} ETH</p>
+                                        </div>
+                                        <div className="details">
+                                            <h3>Tickets restants</h3>
+                                            <p>{nbRemainingTickets}</p>
+                                        </div>
                                     </div>
                                     <div className="details">
-                                        <h3>Tickets en jeu</h3>
-                                        <p>{tickets.length}</p>
+                                        <h3>Temps restant</h3>
+                                        <ul className="expiration">
+                                            <li>{hours} H</li>
+                                            <li>{minutes} M</li>
+                                            <li>{seconds} S</li>
+                                        </ul>
                                     </div>
-                                </div>
-                                <div className="details">
-                                    <h3>Temps restant</h3>
-                                    <ul className="expiration">
-                                        <li>{hours} H</li>
-                                        <li>{minutes} M</li>
-                                        <li>{seconds} S</li>
-                                    </ul>
-                                </div>
-                            </section>
-                            <form className="right">
+                                </section>
+                            </div>
+                            <div className="right">
                                 <section>
                                     <h2>Achat de tickets</h2>
                                     <div>
                                         <span>Prix par ticket</span>
-                                        <span>0.005 ETH</span>
+                                        <span>{ticketPrice} ETH</span>
                                     </div>
                                     <div className="nbTicket">
                                         <label htmlFor="nbTicket">Nombre de tickets</label>
-                                        <input id="nbTicket" name="nbTicket" type="number" min="1" value={nbTickets}
-                                                onChange={event => setNbTickets(Number(event.target.value))} />
+                                        <input id="nbTicket" name="nbTicket" type="number" min="1"
+                                               max={nbRemainingTickets} value={nbTickets}
+                                               onChange={event => setNbTickets(Number(event.target.value))} />
                                     </div>
                                     <div>
                                         <span>Coût des tickets</span>
-                                        <span>X ETH</span>
+                                        <span>{parseFloat((nbTickets * ticketPrice).toFixed(3))} ETH</span>
                                     </div>
                                     <div>
-                                        <span>Frais du réseau</span>
-                                        <span>X WEI</span>
+                                        <p><em>+ Frais de carburant</em></p>
                                     </div>
-                                    <div className="total">
-                                        <span>Total</span>
-                                        <span>X ETH</span>
-                                    </div>
-                                    <button disabled={!isActive}>Acheter X tickets</button>
+                                    <button onClick={buyTicketsHandler} disabled={!isActive || !address}>
+                                        Acheter {nbTickets} tickets
+                                    </button>
                                 </section>
-                            </form>
+                                {address ?
+                                    <section>
+                                        <h2>Mes gains</h2>
+                                        <div>
+                                            <span>Solde des gains</span>
+                                            <span>{winnings} ETH</span>
+                                        </div>
+                                        <button onClick={withdrawWinningsHandler} disabled={!winnings}>
+                                            Retirer les gains
+                                        </button>
+                                    </section> : ""}
+                            </div>
                         </div>
                     </> :
                     <div className="loading">
-                            <div className="alert alert-info">Récupération des informations...</div>
+                        <div className="alert alert-info">Récupération des informations...</div>
                     </div>
-                    }
-                </div>
-            </main>
-            <footer className="footer">
-                <p>IFT-7100 - Projet de session (Équipe 7)</p>
-            </footer>
+                }
+            </div>
+        </main>
+        <footer className="footer">
+            <p>IFT-7100 - Projet de session (Équipe 7)</p>
+        </footer>
         </body>
     );
 }
