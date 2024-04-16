@@ -1,4 +1,4 @@
-# IFT-7100 - TP3 (Équipe 7)
+# IFT-7100 - Projet de session (Équipe 7)
 
 ![Université Laval](images/logo.svg)
 
