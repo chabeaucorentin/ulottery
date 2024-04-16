@@ -70,8 +70,9 @@ export default function Home() {
             fromBlock: "latest"
         })
             .on("data", async function (event) {
+                const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
                 setNbTotalTickets(0);
-                await fetchWinnings();
+                await fetchWinnings(accounts[0]);
                 await fetchNbRemainingTickets();
             });
 
