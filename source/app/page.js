@@ -9,7 +9,7 @@ export default function Home() {
     const [success, setSuccess] = useState("");
     const [address, setAddress] = useState("");
     const [isLoaded, setIsLoaded] = useState(false);
-    const [isActive, setIsActive] = useState(true);
+    const [isActive, setIsActive] = useState(false);
     const [hours, setHours] = useState(0);
     const [minutes, setMinutes] = useState(0);
     const [seconds, setSeconds] = useState(0);
