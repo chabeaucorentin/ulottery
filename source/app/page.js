@@ -260,12 +260,12 @@ export default function Home() {
                                     </button>
                                 </li>
                                 <li>
-                                    <button onClick={drawWinnerHandler} disabled={isActive || !nbTotalTickets}>
+                                    <button onClick={drawWinnerHandler} disabled={isActive || nbTotalTickets === 0}>
                                         Tirer un gagnant
                                     </button>
                                 </li>
                                 <li>
-                                    <button onClick={cancelHandler} disabled={nbTotalTickets}>
+                                    <button onClick={cancelHandler} disabled={nbTotalTickets === 0}>
                                         Annuler
                                     </button>
                                 </li>
@@ -330,7 +330,7 @@ export default function Home() {
                                             <span>Solde des gains</span>
                                             <span>{winnings} ETH</span>
                                         </div>
-                                        <button onClick={withdrawWinningsHandler} disabled={!winnings}>
+                                        <button onClick={withdrawWinningsHandler} disabled={winnings === 0}>
                                             Retirer les gains
                                         </button>
                                     </section> : ""}
