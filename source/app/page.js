@@ -2,7 +2,7 @@
 
 import Web3 from "web3";
 import Lottery from "./lottery";
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useState} from "react";
 
 export default function Home() {
     const [error, setError] = useState("");
@@ -240,126 +240,131 @@ export default function Home() {
 
     return (
         <body>
-        <header className="topbar">
-            <div className="left">
-                <img className="logo" src="./assets/images/logo.svg" alt="Université Laval"/>
-                <div className="separator"></div>
-                <span className="course">IFT-7100</span>
-            </div>
-            <div className="right">
-                <span>uLottery</span>
-                <button onClick={walletHandler}>
-                    {address ? "Déconnexion" : "Connexion"}
-                </button>
-            </div>
-        </header>
-        <main className="container">
-            <div className="app">
-                {isLoaded ?
-                    <>
-                        {address ? <div className="alert alert-info">Connecté sur le portefeuille {address}</div> : ""}
-                        {error ? <div className="alert alert-danger">{error}</div> : ""}
-                        {!error && success ? <div className="alert alert-success">{success}</div> : ""}
-                        {owner === address ? <div className="owner">
-                            <h2>Gestion de la loterie</h2>
-                            <ul className="buttons">
-                                <li>
-                                    <button onClick={startHandler} disabled={isActive || nbTotalTickets > 0}>
-                                        Démarrer
-                                    </button>
-                                </li>
-                                <li>
-                                    <button onClick={stopHandler} disabled={!isActive}>
-                                        Arrêter
-                                    </button>
-                                </li>
-                                <li>
-                                    <button onClick={drawWinnerHandler} disabled={isActive || nbTotalTickets === 0}>
-                                        Tirer un gagnant
-                                    </button>
-                                </li>
-                                <li>
-                                    <button onClick={cancelHandler} disabled={nbTotalTickets === 0}>
-                                        Annuler
-                                    </button>
-                                </li>
-                            </ul>
-                        </div> : ""}
-                        <div className="lottery">
-                            <div className="left">
-                                <section>
-                                    <h2>Loterie en cours</h2>
-                                    {!isActive ? <div className="alert alert-info">
-                                        {nbTotalTickets > 0 ? "En attente de la sélection d'un gagnant pour la loterie " +
-                                            "précédente." : "Aucune loterie en cours"}
-                                    </div> : ""}
-                                    <div className="split">
-                                        <div className="details">
-                                            <h3>Gains potentiels</h3>
-                                            <p>{nbTotalTickets * ticketPrice} ETH</p>
-                                        </div>
-                                        <div className="details">
-                                            <h3>Tickets restants</h3>
-                                            <p>{nbRemainingTickets}</p>
-                                        </div>
-                                    </div>
-                                    <div className="details">
-                                        <h3>Temps restant</h3>
-                                        <ul className="expiration">
-                                            <li>{hours} H</li>
-                                            <li>{minutes} M</li>
-                                            <li>{seconds} S</li>
-                                        </ul>
-                                    </div>
-                                </section>
-                            </div>
-                            <div className="right">
-                                <section>
-                                    <h2>Achat de tickets</h2>
-                                    <div>
-                                        <span>Prix par ticket</span>
-                                        <span>{ticketPrice} ETH</span>
-                                    </div>
-                                    <div className="nbTicket">
-                                        <label htmlFor="nbTicket">Nombre de tickets</label>
-                                        <input id="nbTicket" name="nbTicket" type="number" min="1"
-                                               max={nbRemainingTickets} value={nbTickets}
-                                               onChange={updateNbTickets} />
-                                    </div>
-                                    <div>
-                                        <span>Coût des tickets</span>
-                                        <span>{parseFloat((nbTickets * ticketPrice).toFixed(3))} ETH</span>
-                                    </div>
-                                    <div>
-                                        <p><em>+ Frais de carburant</em></p>
-                                    </div>
-                                    <button onClick={buyTicketsHandler} disabled={!isActive || !address}>
-                                        Acheter {nbTickets} ticket{nbTickets > 1 ? "s" : ""}
-                                    </button>
-                                </section>
-                                {address ?
-                                    <section>
-                                        <h2>Mes gains</h2>
-                                        <div>
-                                            <span>Solde des gains</span>
-                                            <span>{winnings} ETH</span>
-                                        </div>
-                                        <button onClick={withdrawWinningsHandler} disabled={winnings === 0}>
-                                            Retirer les gains
+            <header className="topbar">
+                <div className="left">
+                    <img className="logo" src="./assets/images/logo.svg" alt="Université Laval"/>
+                    <div className="separator"></div>
+                    <span className="course">IFT-7100</span>
+                </div>
+                <div className="right">
+                    <span>uLottery</span>
+                    <button onClick={walletHandler}>
+                        {address ? "Déconnexion" : "Connexion"}
+                    </button>
+                </div>
+            </header>
+            <main className="container">
+                <div className="app">
+                    {isLoaded ?
+                        <>
+                            {address ? <div className="alert alert-info">Connecté sur le portefeuille {address}</div> : ""}
+                            {error ? <div className="alert alert-danger">{error}</div> : ""}
+                            {!error && success ? <div className="alert alert-success">{success}</div> : ""}
+                            {owner === address ? <div className="owner">
+                                <h2>Gestion de la loterie</h2>
+                                <ul className="buttons">
+                                    <li>
+                                        <button onClick={startHandler} disabled={isActive || nbTotalTickets > 0}>
+                                            Démarrer
                                         </button>
-                                    </section> : ""}
+                                    </li>
+                                    <li>
+                                        <button onClick={stopHandler} disabled={!isActive}>
+                                            Arrêter
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button onClick={drawWinnerHandler} disabled={isActive || nbTotalTickets === 0}>
+                                            Tirer un gagnant
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button onClick={cancelHandler} disabled={nbTotalTickets === 0}>
+                                            Annuler
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div> : ""}
+                            <div className="lottery">
+                                <div className="left">
+                                    <section>
+                                        <h2>Loterie en cours</h2>
+                                        {!isActive ? <div className="alert alert-info">
+                                            {nbTotalTickets > 0 ? "En attente de la sélection d'un gagnant pour la loterie " +
+                                                "précédente." : "Aucune loterie en cours"}
+                                        </div> : ""}
+                                        <div className="split">
+                                            <div className="details">
+                                                <h3>Gains potentiels</h3>
+                                                <p>{nbTotalTickets * ticketPrice} ETH</p>
+                                            </div>
+                                            <div className="details">
+                                                <h3>Tickets restants</h3>
+                                                <p>{nbRemainingTickets}</p>
+                                            </div>
+                                        </div>
+                                        <div className="details">
+                                            <h3>Temps restant</h3>
+                                            <ul className="expiration">
+                                                <li>{hours} H</li>
+                                                <li>{minutes} M</li>
+                                                <li>{seconds} S</li>
+                                            </ul>
+                                        </div>
+                                    </section>
+                                </div>
+                                <div className="right">
+                                    <section>
+                                        <h2>Achat de tickets</h2>
+                                        <div>
+                                            <span>Prix par ticket</span>
+                                            <span>{ticketPrice} ETH</span>
+                                        </div>
+                                        <div className="nbTicket">
+                                            <label htmlFor="nbTicket">Nombre de tickets</label>
+                                            <input id="nbTicket" name="nbTicket" type="number" min="1"
+                                                   max={nbRemainingTickets} value={nbTickets}
+                                                   onChange={updateNbTickets} />
+                                        </div>
+                                        <div>
+                                            <span>Coût des tickets</span>
+                                            <span>{parseFloat((nbTickets * ticketPrice).toFixed(3))} ETH</span>
+                                        </div>
+                                        <div>
+                                            <p><em>+ Frais de carburant</em></p>
+                                        </div>
+                                        <button onClick={buyTicketsHandler} disabled={!isActive || !address}>
+                                            Acheter {nbTickets} ticket{nbTickets > 1 ? "s" : ""}
+                                        </button>
+                                    </section>
+                                    {address ?
+                                        <section>
+                                            <h2>Mes gains</h2>
+                                            <div>
+                                                <span>Solde des gains</span>
+                                                <span>{winnings} ETH</span>
+                                            </div>
+                                            <button onClick={withdrawWinningsHandler} disabled={winnings === 0}>
+                                                Retirer les gains
+                                            </button>
+                                        </section> : ""}
+                                </div>
                             </div>
+                        </> :
+                        <div className="loading">
+                            <div className="alert alert-info">Récupération des informations...</div>
                         </div>
-                    </> :
-                    <div className="loading">
-                        <div className="alert alert-info">Récupération des informations...</div>
-                    </div>
-                }
-            </div>
-        </main>
-        <footer className="footer">
-            <p>IFT-7100 - Projet de session (Équipe 7)</p>
-        </footer>
+                    }
+                </div>
+            </main>
+            <main className="container small-device">
+                <article className="error">
+                    <p>Une résolution d’au moins <strong>1090x550 pixels</strong> est requise pour consulter la plateforme.</p>
+                </article>
+            </main>
+            <footer className="footer">
+                <p>IFT-7100 - Projet de session (Équipe 7)</p>
+            </footer>
         </body>
     );
 }

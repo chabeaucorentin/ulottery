@@ -169,6 +169,17 @@ button:focus {
     justify-content: space-between;
 }
 
+@media screen and (max-height: 549px),
+screen and (max-width: 1089px) {
+    .topbar .left {
+        border-color: transparent;
+    }
+
+    .topbar .right {
+        display: none;
+    }
+}
+
 .container {
     position: fixed;
     top: 75px;
@@ -365,6 +376,34 @@ button:focus {
     width: 100%;
     padding: 15px 10px;
     margin-top: 15px;
+}
+
+@media screen and (max-height: 549px),
+screen and (max-width: 1089px) {
+    .container {
+        display: none;
+    }
+}
+
+.small-device {
+    display: none;
+}
+
+.small-device article.error {
+    width: 100%;
+    padding: 20px;
+    border: 1px solid #E3E3E3;
+    color: #E30513;
+    background-color: #FFF;
+}
+
+@media screen and (max-height: 549px),
+screen and (max-width: 1089px) {
+    .small-device {
+        left: 0;
+        width: 100vw;
+        display: flex;
+    }
 }
 
 footer {
