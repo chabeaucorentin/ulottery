@@ -2,7 +2,7 @@
 
 import Web3 from "web3";
 import Lottery from "./lottery";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 
 export default function Home() {
     const [error, setError] = useState("");
@@ -14,6 +14,7 @@ export default function Home() {
     const [minutes, setMinutes] = useState(0);
     const [seconds, setSeconds] = useState(0);
     const [nbTickets, setNbTickets] = useState(1);
+    let timer;
 
     /* ---------------------- Variables du contrat ---------------------- */
     const [owner, setOwner] = useState("");
@@ -25,11 +26,17 @@ export default function Home() {
     const [nbTotalTickets, setNbTotalTickets] = useState(0);
 
     useEffect(() => {
-        if (!isLoaded) initializeData();
-
-        let timer = setInterval(() => {
+        timer = setInterval(() => {
             updateTimer(expiration);
         }, 1000);
+
+        return async () => {
+            clearInterval(timer);
+        };
+    }, [expiration]);
+
+    useEffect(() => {
+        initializeData();
 
         /* --------------------------- Événements --------------------------- */
         Lottery.events.LotteryStarted({
@@ -54,21 +61,21 @@ export default function Home() {
         Lottery.events.TicketsPurchased({
             fromBlock: "latest"
         })
-            .on("data", function(event) {
+            .on("data", async function (event) {
                 if (event.returnValues.participant === address) {
                     setSuccess("Votre achat a bien été réalisé.");
                     setError("");
                 }
-                setNbTotalTickets(nbTotalTickets + Number(event.returnValues.nb));
-                setNbRemainingTickets(nbRemainingTickets - Number(event.returnValues.nb));
+                await fetchNbTotalTickets();
+                await fetchNbRemainingTickets();
             });
 
         Lottery.events.WinnerSelected({
             fromBlock: "latest"
         })
-            .on("data", function(event) {
-                if (event.returnValues.winner === address && nbTotalTickets > 0) {
-                    setWinnings(parseFloat((winnings + nbTotalTickets * ticketPrice).toFixed(3)));
+            .on("data", async function (event) {
+                if (event.returnValues.winner === address) {
+                    await fetchWinnings();
                     setSuccess("Félicitations ! Vous remportez les gains.");
                     setError("");
                 }
@@ -81,18 +88,19 @@ export default function Home() {
         })
             .on("data", function(event) {
                 updateTimer(0);
+                setNbTotalTickets(0);
+                setNbRemainingTickets(nbMaxTickets);
                 setError("La loterie a été annulée et remboursée.");
             });
 
         return async () => {
-            clearInterval(timer);
             await Lottery.events.LotteryStarted().unsubscribe();
             await Lottery.events.LotteryStopped().unsubscribe();
             await Lottery.events.TicketsPurchased().unsubscribe();
             await Lottery.events.WinnerSelected().unsubscribe();
             await Lottery.events.LotteryCancelled().unsubscribe();
         };
-    });
+    }, [Lottery]);
 
     const fetchTicketPrice = async () => {
         const tp = await Lottery.methods.ticketPrice().call();
@@ -224,6 +232,17 @@ export default function Home() {
         await sendTransaction({ data: Lottery.methods.cancelLottery().encodeABI() });
     }
 
+    const updateNbTickets = async () => {
+        const nb = Number(event.target.value);
+        if (nb < 1) {
+            setNbTickets(1);
+        } else if (nb > nbMaxTickets) {
+            setNbTickets(nbMaxTickets);
+        } else {
+            setNbTickets(nb);
+        }
+    }
+
     return (
         <body>
         <header className="topbar">
@@ -310,7 +329,7 @@ export default function Home() {
                                         <label htmlFor="nbTicket">Nombre de tickets</label>
                                         <input id="nbTicket" name="nbTicket" type="number" min="1"
                                                max={nbRemainingTickets} value={nbTickets}
-                                               onChange={event => setNbTickets(Number(event.target.value))} />
+                                               onChange={updateNbTickets} />
                                     </div>
                                     <div>
                                         <span>Coût des tickets</span>
