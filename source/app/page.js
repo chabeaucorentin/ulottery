@@ -62,10 +62,6 @@ export default function Home() {
             fromBlock: "latest"
         })
             .on("data", async function (event) {
-                if (event.returnValues.participant === address) {
-                    setSuccess("Votre achat a bien été réalisé.");
-                    setError("");
-                }
                 await fetchNbTotalTickets();
                 await fetchNbRemainingTickets();
             });
@@ -74,22 +70,18 @@ export default function Home() {
             fromBlock: "latest"
         })
             .on("data", async function (event) {
-                if (event.returnValues.winner === address) {
-                    await fetchWinnings();
-                    setSuccess("Félicitations ! Vous remportez les gains.");
-                    setError("");
-                }
                 setNbTotalTickets(0);
-                setNbRemainingTickets(nbMaxTickets);
+                await fetchWinnings();
+                await fetchNbRemainingTickets();
             });
 
         Lottery.events.LotteryCancelled({
             fromBlock: "latest"
         })
-            .on("data", function(event) {
+            .on("data", async function (event) {
                 updateTimer(0);
                 setNbTotalTickets(0);
-                setNbRemainingTickets(nbMaxTickets);
+                await fetchNbRemainingTickets();
                 setError("La loterie a été annulée et remboursée.");
             });
 
@@ -218,6 +210,7 @@ export default function Home() {
             data: Lottery.methods.buyTickets(nbTickets).encodeABI(),
             value: "0x" + Number(Web3.utils.toWei(total, "ether")).toString(16),
         });
+        setSuccess("Votre achat de " + nbTickets + " ticket" + (nbTickets > 1 ? "s" : "") + " a bien été effectué.");
     }
 
     const drawWinnerHandler = async () => {
@@ -226,6 +219,7 @@ export default function Home() {
 
     const withdrawWinningsHandler = async () => {
         await sendTransaction({ data: Lottery.methods.withdrawWinnings().encodeABI() });
+        setWinnings(0);
     }
 
     const cancelHandler = async () => {
@@ -339,7 +333,7 @@ export default function Home() {
                                         <p><em>+ Frais de carburant</em></p>
                                     </div>
                                     <button onClick={buyTicketsHandler} disabled={!isActive || !address}>
-                                        Acheter {nbTickets} tickets
+                                        Acheter {nbTickets} ticket{nbTickets > 1 ? "s" : ""}
                                     </button>
                                 </section>
                                 {address ?
