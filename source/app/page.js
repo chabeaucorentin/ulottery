@@ -257,7 +257,7 @@ export default function Home() {
                 <div className="app">
                     {isLoaded ?
                         <>
-                            {address ? <div className="alert alert-info">Connecté sur le portefeuille {address}</div> : ""}
+                            {address ? <div className="alert alert-info">Connecté sur le portefeuille {address}.</div> : ""}
                             {error ? <div className="alert alert-danger">{error}</div> : ""}
                             {!error && success ? <div className="alert alert-success">{success}</div> : ""}
                             {owner === address ? <div className="owner">
@@ -291,7 +291,7 @@ export default function Home() {
                                         <h2>Loterie en cours</h2>
                                         {!isActive ? <div className="alert alert-info">
                                             {nbTotalTickets > 0 ? "En attente de la sélection d'un gagnant pour la loterie " +
-                                                "précédente." : "Aucune loterie en cours"}
+                                                "précédente." : "Aucune loterie en cours."}
                                         </div> : ""}
                                         <div className="split">
                                             <div className="details">
